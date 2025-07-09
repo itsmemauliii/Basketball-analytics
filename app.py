@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 # Load cleaned KenPom data
-df = pd.read_csv("data/kenpom_2025_.csv")
+df = pd.read_csv("kenpom_2025_.csv")
 df
 # App layout
 st.set_page_config(page_title="KenPom Matchup Analyzer", layout="wide")
