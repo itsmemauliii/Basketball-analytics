@@ -1,38 +1,49 @@
 import streamlit as st
 import pandas as pd
 
-# Load data
-df = pd.read_csv("kenpom_2025_.csv")
-df
+# Load cleaned KenPom data
+df = pd.read_csv("data/kenpom_2025_cleaned.csv")
 
-st.title("🏀 NCAA KenPom Matchup Analyzer")
+# App layout
+st.set_page_config(page_title="KenPom Matchup Analyzer", layout="wide")
+st.title("🏀 KenPom Matchup Analyzer")
+st.caption("Analyze team matchups using KenPom-style stats for NCAA 2025")
 
-# Select teams
-team_1 = st.selectbox("Select Your Team", df["Team"].unique(), index=df[df["Team"] == "Illinois"].index[0])
-team_2 = st.selectbox("Select Opponent", df["Team"].unique())
+# Sidebar for selections
+st.sidebar.header("Team Selection")
 
-# Fetch stats
-t1 = df[df["Team"] == team_1].squeeze()
-t2 = df[df["Team"] == team_2].squeeze()
+team_names = df["Team"].unique().tolist()
 
-st.subheader(f"{team_1} vs {team_2} – Matchup Breakdown")
+# Default to Illinois if available
+illinois_index = int(df[df["Team"] == "Illinois"].index[0]) if "Illinois" in df["Team"].values else 0
+
+team_1 = st.sidebar.selectbox("🔷 Select Your Team", team_names, index=illinois_index)
+team_2 = st.sidebar.selectbox("🔶 Select Opponent", team_names)
+
+# Get team stats
+team1_stats = df[df["Team"] == team_1].squeeze()
+team2_stats = df[df["Team"] == team_2].squeeze()
+
+# Display team stats side-by-side
+st.subheader(f"{team_1} vs {team_2}")
 
 col1, col2 = st.columns(2)
-
 with col1:
-    st.markdown(f"### {team_1}")
-    st.write(t1[["Conference", "Net Rating", "Offensive Rating", "Defensive Rating", "Adjusted Tempo", "Luck Factor"]])
+    st.markdown(f"### 🔷 {team_1}")
+    st.dataframe(team1_stats[["Conference", "Net Rating", "Offensive Rating", "Defensive Rating", "Adjusted Tempo", "Luck Factor"]])
 
 with col2:
-    st.markdown(f"### {team_2}")
-    st.write(t2[["Conference", "Net Rating", "Offensive Rating", "Defensive Rating", "Adjusted Tempo", "Luck Factor"]])
+    st.markdown(f"### 🔶 {team_2}")
+    st.dataframe(team2_stats[["Conference", "Net Rating", "Offensive Rating", "Defensive Rating", "Adjusted Tempo", "Luck Factor"]])
 
-# Matchup insights
-st.markdown("### 📊 Matchup Insights")
-tempo_gap = t1["Adjusted Tempo"] - t2["Adjusted Tempo"]
-off_gap = t1["Offensive Rating"] - t2["Defensive Rating"]
-def_gap = t1["Defensive Rating"] - t2["Offensive Rating"]
+# Matchup Insights
+st.markdown("---")
+st.markdown("## 📊 Matchup Insights")
 
-st.write(f"**Tempo Gap:** {tempo_gap:.2f} → {'Push the pace' if tempo_gap > 2 else 'Watch for slow-down'}")
-st.write(f"**Offensive Advantage:** {off_gap:.2f} → {'Exploit offensive edge' if off_gap > 5 else 'Expect resistance'}")
-st.write(f"**Defensive Challenge:** {def_gap:.2f} → {'Strong D-matchup' if def_gap < -5 else 'May struggle defending'}")
+tempo_diff = team1_stats["Adjusted Tempo"] - team2_stats["Adjusted Tempo"]
+off_advantage = team1_stats["Offensive Rating"] - team2_stats["Defensive Rating"]
+def_advantage = team1_stats["Defensive Rating"] - team2_stats["Offensive Rating"]
+
+st.info(f"**Tempo Gap:** `{tempo_diff:.2f}` → {'Push the pace!' if tempo_diff > 2 else 'Expect a slower tempo.'}")
+st.success(f"**Offensive Advantage:** `{off_advantage:.2f}` → {'You have a scoring edge!' if off_advantage > 3 else 'Opponent has solid defense.'}")
+st.warning(f"**Defensive Matchup:** `{def_advantage:.2f}` → {'Defensive test ahead!' if def_advantage < -3 else 'You can limit their offense.'}")
