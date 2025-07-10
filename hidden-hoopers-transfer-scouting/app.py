@@ -3,48 +3,53 @@ import pandas as pd
 
 st.set_page_config(page_title="Hidden Hoopers - Transfer Scouting", layout="centered")
 st.title("🏀 Hidden Hoopers: Transfer Portal Scouting Tool")
-st.markdown(
-    """
-Upload a **T-Rank CSV file** to scout **undervalued transfer-heavy teams** likely to break out.
-We look for teams with:
-- 🔄 5+ incoming transfers  
-- 📉 Less than 40% minutes returning  
-- 📈 Top-50 offense (AdjOE) or defense (AdjDE) projection
-"""
-)
 
-# Step 1: Upload CSV
-uploaded_file = st.file_uploader("📂 Upload your T-Rank CSV file", type=["csv"])
+st.markdown("""
+Upload your **T-Rank CSV** to scout **undervalued transfer-heavy teams**.
+
+We'll highlight:
+- 🔄 Teams with **5+ transfers**
+- 📉 Less than **40% returning minutes**
+- ⚔️ Top-50 **offensive or defensive** adjusted efficiency (AdjOE or AdjDE)
+""")
+
+# Upload CSV
+uploaded_file = st.file_uploader("📂 Upload your T-Rank CSV", type=["csv"])
 
 if uploaded_file is not None:
     try:
-        # Step 2: Read the CSV, skip first row if it's a note
-        df = pd.read_csv(uploaded_file, skiprows=1)
+        # Load and clean the data
+        df = pd.read_csv(uploaded_file, skiprows=1)  # skip metadata row
+        df.columns = df.columns.str.strip().str.replace('\xa0', ' ', regex=False)
 
-        # Step 3: Clean percent columns
+        # Optional: show column names for debugging
+        # st.write("📄 Columns:", df.columns.tolist())
+
+        # Clean 'Ret Mins' and 'RPMs'
         df['Ret Mins'] = df['Ret Mins'].str.replace('%', '', regex=False).astype(float)
         df['RPMs'] = df['RPMs'].str.replace('%', '', regex=False).astype(float)
 
-        # Step 4: Filter undervalued teams
+        # Filter for undervalued breakout teams
         undervalued = df[
             (df['Trans.'] >= 5) &
             (df['Ret Mins'] < 40) &
             ((df['AdjOE'].rank(ascending=False) <= 50) | (df['AdjDE'].rank() <= 50))
         ].copy()
 
-        # Step 5: Create scouting reports
+        # Add scouting report
         undervalued['Scouting Report'] = undervalued.apply(
-            lambda row: f"🔥 **{row['Team']}** has {int(row['Trans.'])} transfers, just {row['Ret Mins']}% minutes returning, but impressive AdjOE: {row['AdjOE']} and AdjDE: {row['AdjDE']}. Sleeper team alert!",
+            lambda row: f"🔥 **{row['Team']}** has {int(row['Trans.'])} transfers, only {row['Ret Mins']}% minutes returning, "
+                        f"but has AdjOE: {row['AdjOE']} and AdjDE: {row['AdjDE']}. High ceiling alert!",
             axis=1
         )
 
+        # UI Output
         if undervalued.empty:
-            st.warning("⚠️ No undervalued teams found based on the criteria.")
+            st.warning("⚠️ No undervalued teams matched the scouting criteria.")
         else:
             team = st.selectbox("🔍 Select a team to scout:", undervalued['Team'].sort_values().unique())
             team_data = undervalued[undervalued['Team'] == team].iloc[0]
 
-            # Step 6: Show team info
             st.markdown(f"""
             ### 🏷️ Team: {team}
             - 🔄 Transfers: `{int(team_data['Trans.'])}`
@@ -57,10 +62,10 @@ if uploaded_file is not None:
             """)
 
     except Exception as e:
-        st.error(f"⚠️ Failed to process file: {e}")
+        st.error(f"❌ Error loading or processing file: {e}")
 else:
-    st.info("📌 Please upload a valid `T-Rank.csv` file to get started.")
+    st.info("📌 Please upload a valid `T-Rank.csv` file to begin analysis.")
 
 # Footer
 st.markdown("---")
-st.caption("🔍 Built by Mauli Patel • Data: Bart Torvik • Illinois MBB Internship Project")
+st.caption("🔍 Built by Mauli Patel • Data Source: Bart Torvik (T-Rank) • For Illinois MBB Internship")
