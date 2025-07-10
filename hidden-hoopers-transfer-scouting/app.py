@@ -18,15 +18,21 @@ uploaded_file = st.file_uploader("📂 Upload cleaned T-Rank CSV (trank_cleaned.
 
 if uploaded_file is not None:
     try:
-        # Read and process the CSV
+        # Read and clean
         df = pd.read_csv(uploaded_file)
         df.columns = df.columns.str.strip()
 
-        # Convert necessary fields to float after removing %
+        # Remove any rows where the header was mistakenly repeated
+        df = df[df["Ret Mins"] != "Ret Mins"]
+
+        # Convert numeric columns safely
         df["Ret Mins"] = df["Ret Mins"].astype(str).str.replace('%', '', regex=False).astype(float)
         df["RPMs"] = df["RPMs"].astype(str).str.replace('%', '', regex=False).astype(float)
+        df["AdjOE"] = df["AdjOE"].astype(float)
+        df["AdjDE"] = df["AdjDE"].astype(float)
+        df["Trans."] = pd.to_numeric(df["Trans."], errors='coerce').fillna(0).astype(int)
 
-        # Filter undervalued breakout candidates
+        # Filter: undervalued breakout candidates
         filtered_df = df[
             (df["Trans."] >= 5) &
             (df["Ret Mins"] < 40) &
@@ -53,6 +59,6 @@ if uploaded_file is not None:
             """)
 
     except Exception as e:
-        st.error(f"❌ Error: {e}")
+        st.error(f"❌ Error loading or processing file: {e}")
 else:
     st.info("📁 Please upload `trank_cleaned.csv` to begin scouting.")
