@@ -7,7 +7,7 @@ Coaches often miss high-upside teams due to noisy rankings. This tool filters te
 
 ## 📊 Data Used
 - Source: BartTorvik's T-Rank Preseason Projections (2025)
-- Cleaned CSV: `T-Rank.csv`
+- Cleaned CSV: `trank.csv`
 
 ## 🛠 Built With
 - Python
