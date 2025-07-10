@@ -5,67 +5,54 @@ st.set_page_config(page_title="Hidden Hoopers - Transfer Scouting", layout="cent
 st.title("🏀 Hidden Hoopers: Transfer Portal Scouting Tool")
 
 st.markdown("""
-Upload your **T-Rank CSV** to scout **undervalued transfer-heavy teams**.
+Upload the **cleaned T-Rank CSV** to identify **undervalued teams** in the transfer portal.
 
-We'll highlight:
-- 🔄 Teams with **5+ transfers**
-- 📉 Less than **40% returning minutes**
-- ⚔️ Top-50 **offensive or defensive** adjusted efficiency (AdjOE or AdjDE)
+### Criteria:
+- 🔁 **Returning Minutes** < 40%
+- 🔄 **5+ Transfers**
+- ⚔️ Ranked Top 50 in **AdjOE** or **AdjDE**
 """)
 
 # Upload CSV
-uploaded_file = st.file_uploader("📂 Upload your T-Rank CSV", type=["csv"])
+uploaded_file = st.file_uploader("📂 Upload cleaned T-Rank CSV (trank_cleaned.csv)", type=["csv"])
 
 if uploaded_file is not None:
     try:
-        # Load and clean the data
-        df = pd.read_csv(uploaded_file, skiprows=1)  # skip metadata row
-        df.columns = df.columns.str.strip().str.replace('\xa0', ' ', regex=False)
+        # Read and process the CSV
+        df = pd.read_csv(uploaded_file)
+        df.columns = df.columns.str.strip()
 
-        # Optional: show column names for debugging
-        # st.write("📄 Columns:", df.columns.tolist())
+        # Convert necessary fields to float after removing %
+        df["Ret Mins"] = df["Ret Mins"].astype(str).str.replace('%', '', regex=False).astype(float)
+        df["RPMs"] = df["RPMs"].astype(str).str.replace('%', '', regex=False).astype(float)
 
-        # Clean 'Ret Mins' and 'RPMs'
-        df['Ret Mins'] = df['Ret Mins'].str.replace('%', '', regex=False).astype(float)
-        df['RPMs'] = df['RPMs'].str.replace('%', '', regex=False).astype(float)
-
-        # Filter for undervalued breakout teams
-        undervalued = df[
-            (df['Trans.'] >= 5) &
-            (df['Ret Mins'] < 40) &
-            ((df['AdjOE'].rank(ascending=False) <= 50) | (df['AdjDE'].rank() <= 50))
+        # Filter undervalued breakout candidates
+        filtered_df = df[
+            (df["Trans."] >= 5) &
+            (df["Ret Mins"] < 40) &
+            ((df["AdjOE"].rank(ascending=False) <= 50) | (df["AdjDE"].rank() <= 50))
         ].copy()
 
-        # Add scouting report
-        undervalued['Scouting Report'] = undervalued.apply(
-            lambda row: f"🔥 **{row['Team']}** has {int(row['Trans.'])} transfers, only {row['Ret Mins']}% minutes returning, "
-                        f"but has AdjOE: {row['AdjOE']} and AdjDE: {row['AdjDE']}. High ceiling alert!",
-            axis=1
-        )
-
-        # UI Output
-        if undervalued.empty:
-            st.warning("⚠️ No undervalued teams matched the scouting criteria.")
+        if filtered_df.empty:
+            st.warning("No undervalued teams matched the criteria.")
         else:
-            team = st.selectbox("🔍 Select a team to scout:", undervalued['Team'].sort_values().unique())
-            team_data = undervalued[undervalued['Team'] == team].iloc[0]
+            team = st.selectbox("🔍 Choose a team to scout:", filtered_df["Team"].sort_values().unique())
+            team_data = filtered_df[filtered_df["Team"] == team].iloc[0]
 
             st.markdown(f"""
-            ### 🏷️ Team: {team}
+            ## 🏷️ **{team_data['Team']}**
             - 🔄 Transfers: `{int(team_data['Trans.'])}`
             - 🔁 Returning Minutes: `{team_data['Ret Mins']}%`
             - ⚔️ AdjOE: `{team_data['AdjOE']}`
             - 🛡️ AdjDE: `{team_data['AdjDE']}`
+            - ⏱️ Tempo: `{team_data['Tempo']}`
 
-            📋 **Scouting Summary**  
-            {team_data['Scouting Report']}
+            📊 **Scouting Summary**  
+            `{team_data['Team']}` has strong offensive or defensive metrics despite limited returning minutes. 
+            With {team_data['Trans.']} transfers and a new core, this team may be an under-the-radar breakout.
             """)
 
     except Exception as e:
-        st.error(f"❌ Error loading or processing file: {e}")
+        st.error(f"❌ Error: {e}")
 else:
-    st.info("📌 Please upload a valid `T-Rank.csv` file to begin analysis.")
-
-# Footer
-st.markdown("---")
-st.caption("🔍 Built by Mauli Patel • Data Source: Bart Torvik (T-Rank) • For Illinois MBB Internship")
+    st.info("📁 Please upload `trank_cleaned.csv` to begin scouting.")
