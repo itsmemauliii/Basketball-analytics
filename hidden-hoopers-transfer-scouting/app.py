@@ -1,10 +1,13 @@
-import streamlit as st
 import pandas as pd
+import os
+import streamlit as st
 from utils.scouting_logic import filter_undervalued_teams, generate_scouting_report
 
-# Load data
+
+print("📁 Current Directory:", os.getcwd())
+print("📄 Files:", os.listdir('data'))
+
 df = pd.read_csv('data/T-Rank.csv')
-df
 df = filter_undervalued_teams(df)
 
 st.title("🏀 Hidden Hoopers: Transfer Portal Scouting Tool")
