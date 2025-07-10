@@ -3,7 +3,7 @@ import pandas as pd
 from utils.scouting_logic import filter_undervalued_teams, generate_scouting_report
 
 # Load data
-df = pd.read_csv('T-Rank.csv')
+df = pd.read_csv('data/T-Rank.csv')
 df
 df = filter_undervalued_teams(df)
 
