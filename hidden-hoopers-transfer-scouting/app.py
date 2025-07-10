@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import os
 
-# --- Helper Functions (from your second snippet) ---
+# --- Helper Functions ---
 
 def generate_scouting_report(row):
     """Generates a scouting report string for a given team row."""
@@ -18,10 +18,10 @@ def filter_and_process_data(df):
     Assumes 'Ret Mins' and 'RPMs' might still have '%' and need conversion.
     """
     # Ensure 'Ret Mins' and 'RPMs' are clean and numeric
-    # Filter rows that contain '%' before cleaning, to avoid errors on already clean data
-    if '%' in df['Ret Mins'].astype(str).iloc[0]: # Check if the first element has '%'
+    # Check if any value in the column contains '%' before attempting to replace and convert
+    if df['Ret Mins'].astype(str).str.contains('%').any():
         df['Ret Mins'] = df['Ret Mins'].str.replace('%', '').astype(float)
-    if '%' in df['RPMs'].astype(str).iloc[0]: # Check if the first element has '%'
+    if df['RPMs'].astype(str).str.contains('%').any():
         df['RPMs'] = df['RPMs'].str.replace('%', '').astype(float)
 
     # Apply the filtering criteria
@@ -38,9 +38,6 @@ def filter_and_process_data(df):
 # --- Streamlit Application ---
 
 st.title("🏀 Hidden Hoopers: Transfer Portal Scouting Tool")
-
-# Optional: For debugging file presence, can be removed in production
-# st.write("Files in current directory:", os.listdir('.'))
 
 # Load data
 try:
@@ -67,4 +64,3 @@ else:
     st.write(f"**Adjusted Offensive Efficiency (AdjOE):** {team_data['AdjOE']}")
     st.write(f"**Adjusted Defensive Efficiency (AdjDE):** {team_data['AdjDE']}")
     st.success(f"**Scouting Report:** {team_data['Scouting Report']}")
-
