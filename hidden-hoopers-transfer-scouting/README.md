@@ -19,5 +19,5 @@ Coaches often miss high-upside teams due to noisy rankings. This tool filters te
 👉 [Streamlit Link](https://basketball-analytics-project2-mauli-patel.streamlit.app)
 
 ## 📎 Submission Files
-- [Writeup (PDF)](writeup.pdf)
+- [Writeup (PDF)](https://github.com/itsmemauliii/Basketball-analytics/blob/main/hidden-hoopers-transfer-scouting/Writeup.pdf)
 - [Cleaned Dataset](trank_cleaned.csv)
