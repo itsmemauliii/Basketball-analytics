@@ -3,9 +3,7 @@ import os
 import streamlit as st
 from utils.scouting_logic import filter_undervalued_teams, generate_scouting_report
 
-
-print("📁 Current Directory:", os.getcwd())
-print("📄 Files:", os.listdir('data'))
+print("Files here:", os.listdir('.'))
 
 df = pd.read_csv('trank.csv')
 df = filter_undervalued_teams(df)
