@@ -7,7 +7,7 @@ from utils.scouting_logic import filter_undervalued_teams, generate_scouting_rep
 print("📁 Current Directory:", os.getcwd())
 print("📄 Files:", os.listdir('data'))
 
-df = pd.read_csv('data/trank.csv')
+df = pd.read_csv('trank.csv')
 df = filter_undervalued_teams(df)
 
 st.title("🏀 Hidden Hoopers: Transfer Portal Scouting Tool")
